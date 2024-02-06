@@ -49,9 +49,11 @@ function createSwiperSlide(thumbnailUrl, videoId, index) {
 function initializeSwiper() {
   new Swiper(".swiper-container", {
     slidesPerView: 4,
-    spaceBetween: 30,
     loop: true,
-    pagination: { el: ".swiper-pagination", clickable: true },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
   });
 }
 
@@ -70,16 +72,16 @@ function setupEventListeners() {
 }
 
 function setupModalPagination() {
-  const modal = document.getElementById("video-modal");
-  const modalPagination = document.createElement("div");
-  modalPagination.classList.add("modal-pagination");
+  const modalContent = document.querySelector(".modal-content");
+  let modalPagination = modalContent.querySelector(".modal-pagination");
 
-  const existingPagination = modal.querySelector(".modal-pagination");
-  if (existingPagination) {
-    existingPagination.remove();
+  if (!modalPagination) {
+    modalPagination = document.createElement("div");
+    modalPagination.classList.add("modal-pagination");
+    modalContent.appendChild(modalPagination);
+  } else {
+    modalPagination.innerHTML = "";
   }
-
-  modal.appendChild(modalPagination);
 
   for (let i = 0; i < 8; i++) {
     const dot = document.createElement("span");
@@ -88,7 +90,6 @@ function setupModalPagination() {
     dot.addEventListener("click", () => {
       openModal(i);
     });
-
     modalPagination.appendChild(dot);
   }
 
@@ -100,21 +101,10 @@ function openModal(index) {
   const modal = document.getElementById("video-modal");
   const videoId = "824804225";
   iframe.src = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
-  modal.style.display = "block";
+  modal.style.display = "flex";
   currentIndex = parseInt(index);
 
   updateModalPaginationDots();
-}
-
-function updateModalPaginationDots() {
-  const dots = document.querySelectorAll(".pagination-dot");
-  dots.forEach((dot) => {
-    if (parseInt(dot.dataset.index) === currentIndex) {
-      dot.classList.add("active");
-    } else {
-      dot.classList.remove("active");
-    }
-  });
 }
 
 function closeModal() {
@@ -126,9 +116,12 @@ function closeModal() {
 
 let currentIndex = 0;
 
-function changeVideo(direction) {
-  const swiperWrapper = document.querySelector(".swiper-wrapper");
-  const total = swiperWrapper.children.length;
-  currentIndex = (currentIndex + direction + total) % total;
-  openModal(currentIndex);
+function updateModalPaginationDots() {
+  const dots = document.querySelectorAll(".pagination-dot");
+  dots.forEach((dot) => {
+    dot.classList.toggle(
+      "active",
+      parseInt(dot.dataset.index) === currentIndex
+    );
+  });
 }
