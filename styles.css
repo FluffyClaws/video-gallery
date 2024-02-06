@@ -76,3 +76,21 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
+.modal-pagination {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.pagination-dot {
+  height: 10px;
+  width: 10px;
+  margin: 0 5px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.pagination-dot.active {
+  background-color: #717171;
+}

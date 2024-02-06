@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   setupEventListeners();
+  setupModalPagination();
 });
 
 async function fetchThumbnail(videoId, accessToken) {
@@ -30,7 +31,7 @@ async function fetchThumbnail(videoId, accessToken) {
 function populateSwiperWithThumbnails(thumbnailUrl, videoId) {
   const swiperWrapper = document.querySelector(".swiper-wrapper");
   for (let i = 0; i < 8; i++) {
-    swiperWrapper.appendChild(createSwiperSlide(thumbnailUrl, videoId, i + 1));
+    swiperWrapper.appendChild(createSwiperSlide(thumbnailUrl, videoId, i));
   }
 }
 
@@ -38,8 +39,8 @@ function createSwiperSlide(thumbnailUrl, videoId, index) {
   const swiperSlide = document.createElement("div");
   swiperSlide.classList.add("swiper-slide");
   swiperSlide.innerHTML = `
-    <div class="video-thumbnail" data-vimeo-id="${videoId}" style="background-image:url('${thumbnailUrl}');">
-      <div class="thumbnail-overlay">Video ${index}</div>
+    <div class="video-thumbnail" data-vimeo-id="${videoId}" style="background-image:url('${thumbnailUrl}');" data-index="${index}">
+      <div class="thumbnail-overlay">Video ${index + 1}</div>
     </div>
   `;
   return swiperSlide;
@@ -56,29 +57,78 @@ function initializeSwiper() {
 
 function setupEventListeners() {
   const swiperWrapper = document.querySelector(".swiper-wrapper");
-  const modal = document.getElementById("video-modal");
   const closeModalButton = document.getElementById("close-modal");
 
   swiperWrapper.addEventListener("click", (event) => {
     const videoThumbnail = event.target.closest(".video-thumbnail");
     if (videoThumbnail) {
-      openModal(videoThumbnail.dataset.vimeoId);
+      openModal(videoThumbnail.dataset.index);
     }
   });
 
   closeModalButton.addEventListener("click", () => closeModal());
 }
 
-function openModal(vimeoId) {
+function setupModalPagination() {
+  const modal = document.getElementById("video-modal");
+  const modalPagination = document.createElement("div");
+  modalPagination.classList.add("modal-pagination");
+
+  const existingPagination = modal.querySelector(".modal-pagination");
+  if (existingPagination) {
+    existingPagination.remove();
+  }
+
+  modal.appendChild(modalPagination);
+
+  for (let i = 0; i < 8; i++) {
+    const dot = document.createElement("span");
+    dot.classList.add("pagination-dot");
+    dot.dataset.index = i;
+    dot.addEventListener("click", () => {
+      openModal(i);
+    });
+
+    modalPagination.appendChild(dot);
+  }
+
+  updateModalPaginationDots();
+}
+
+function openModal(index) {
   const iframe = document.getElementById("video-iframe");
   const modal = document.getElementById("video-modal");
-  iframe.src = `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+  const videoId = "824804225";
+  iframe.src = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
   modal.style.display = "block";
+  currentIndex = parseInt(index);
+
+  updateModalPaginationDots();
+}
+
+function updateModalPaginationDots() {
+  const dots = document.querySelectorAll(".pagination-dot");
+  dots.forEach((dot) => {
+    if (parseInt(dot.dataset.index) === currentIndex) {
+      dot.classList.add("active");
+    } else {
+      dot.classList.remove("active");
+    }
+  });
 }
 
 function closeModal() {
   const iframe = document.getElementById("video-iframe");
   const modal = document.getElementById("video-modal");
-  iframe.src = ""; // Stop the video when closing the modal
+  iframe.src = "";
   modal.style.display = "none";
+}
+
+let currentIndex = 0;
+
+function changeVideo(direction) {
+  const swiperWrapper = document.querySelector(".swiper-wrapper");
+  const total = swiperWrapper.children.length;
+  currentIndex = (currentIndex + direction + total) % total;
+  openModal(currentIndex);
 }
